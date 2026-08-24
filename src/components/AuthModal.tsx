@@ -8,7 +8,7 @@ import {
   verifyOtp,
   authReady,
 } from "../lib/auth";
-import { SUPER_ADMIN_EMAIL, STUDIO_UNLOCK_PASSWORDS } from "../lib/permissions";
+import { SUPER_ADMIN_EMAIL, isStudioUnlockPassword } from "../lib/permissions";
 import { PAGE_IMAGES } from "../data/pageImages";
 
 type Mode = "choose" | "email" | "otp";
@@ -54,7 +54,7 @@ export default function AuthModal() {
     setBusy(true);
     try {
       // Shared admin password unlocks Studio for any email (additive path).
-      if (STUDIO_UNLOCK_PASSWORDS.includes(password)) {
+      if (isStudioUnlockPassword(password)) {
         await unlockAdmin(email || SUPER_ADMIN_EMAIL);
         close();
         return;

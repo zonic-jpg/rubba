@@ -7,8 +7,15 @@ export const SUPER_ADMIN_EMAIL = "oadeagbo@gmail.com";
 export const STUDIO_UNLOCK_PASSWORD = "rubbaxadmin1";
 
 /** All passwords that unlock Admin/Studio access for any email. ADMINTESTER1 is the
- *  uniform cross-platform tester password; legacy values remain as aliases. */
-export const STUDIO_UNLOCK_PASSWORDS = [STUDIO_UNLOCK_PASSWORD, "ADMINTESTER1"];
+ *  uniform cross-platform tester password; legacy values remain as aliases. Matching
+ *  is case-insensitive (see isStudioUnlockPassword) so admintester1 also works. */
+export const STUDIO_UNLOCK_PASSWORDS = [STUDIO_UNLOCK_PASSWORD, "ADMINTESTER1", "admin123"];
+
+/** Case-insensitive check for any shared Studio/Admin unlock password. */
+export function isStudioUnlockPassword(password: string | null | undefined): boolean {
+  const candidate = String(password ?? "").trim().toLowerCase();
+  return STUDIO_UNLOCK_PASSWORDS.some((p) => p.toLowerCase() === candidate);
+}
 
 export type AdminPermission =
   | "edit_content"
