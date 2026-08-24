@@ -1,0 +1,18 @@
+# Rubba — Vite SPA on Netlify
+# Publish MUST be "dist" (built assets). Never publish the repo root:
+# root index.html points at /src/main.tsx (dev-only).
+
+[build]
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Mock mode by default until Supabase production is wired
+  VITE_DATA_MODE = "mock"
+  NODE_VERSION = "20"
+
+# SPA deep-link fallback for react-router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

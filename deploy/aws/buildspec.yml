@@ -1,0 +1,23 @@
+# AWS CodeBuild — Rubba production build
+# Store VITE_* vars in CodeBuild environment (encrypted) or Secrets Manager.
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - npm ci
+  build:
+    commands:
+      - npm run build
+  post_build:
+    commands:
+      - aws s3 sync dist/ s3://$S3_BUCKET/ --delete --exclude "index.html"
+      - aws s3 cp dist/index.html s3://$S3_BUCKET/index.html --cache-control "public,max-age=0,must-revalidate"
+      - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DIST_ID --paths "/*"
+
+artifacts:
+  files:
+    - "**/*"
+  base-directory: dist
