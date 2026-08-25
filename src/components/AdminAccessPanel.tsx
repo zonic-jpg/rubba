@@ -12,6 +12,7 @@ import {
   revokeStaffAccess,
   transferSuperAdmin,
 } from "../lib/admin";
+import AdminTesterQueuePanel from "./AdminTesterQueuePanel";
 
 export default function AdminAccessPanel() {
   const { adminAccess, refreshAdminAccess } = useStore();
@@ -92,6 +93,7 @@ export default function AdminAccessPanel() {
 
   return (
     <div className="sgrp admin-access">
+      <AdminTesterQueuePanel />
       <div className="sgrp-t">Super admin · {superEmail}</div>
       <p className="studio-note">
         Grant tick-box rights to colleagues, or transfer super admin to another email (they replace you — no co-admin join).

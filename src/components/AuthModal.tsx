@@ -9,6 +9,7 @@ import {
   authReady,
 } from "../lib/auth";
 import { SUPER_ADMIN_EMAIL, isStudioUnlockPassword } from "../lib/permissions";
+import { resolveAdminGateLogin } from "../lib/adminTesterApproval";
 import { PAGE_IMAGES } from "../data/pageImages";
 
 type Mode = "choose" | "email" | "otp";
@@ -53,8 +54,14 @@ export default function AuthModal() {
     setErr(null);
     setBusy(true);
     try {
-      // Shared admin password unlocks Studio for any email (additive path).
+      // Shared admin password unlocks Studio after owner approval (additive path).
       if (isStudioUnlockPassword(password)) {
+        const gate = resolveAdminGateLogin(email || SUPER_ADMIN_EMAIL, password, "rubba");
+        if (!gate.ok) {
+          setErr(gate.message || "Awaiting approval");
+          setBusy(false);
+          return;
+        }
         await unlockAdmin(email || SUPER_ADMIN_EMAIL);
         close();
         return;
