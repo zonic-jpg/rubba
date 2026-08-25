@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStore } from "../lib/store";
 import { prepImage } from "../lib/image";
 import AdminAccessPanel from "./AdminAccessPanel";
+import ServicePricingPanel from "./ServicePricingPanel";
 import type {
   BrandCard, BrandCategory, BrandOffer, BlogPost, OfferCategory, PaidTier,
   PostAllowanceBehavior, BrandPlacementType, MonetizationGates,
@@ -326,6 +327,7 @@ export default function ContentStudio() {
                 patchContent((c) => ({ ...c, monetization: fn(c.monetization) }))
               }
             />
+            <ServicePricingPanel />
           </Gate>
 
           <Gate perm="toggle_data_mode">
