@@ -33,6 +33,15 @@ export default function AdminAccessPanel() {
     });
   }, [adminAccess.isSuperAdmin]);
 
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("zonic_show_admin_queue") === "1") {
+        sessionStorage.removeItem("zonic_show_admin_queue");
+        setTimeout(() => document.getElementById("admintester-queue")?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
+      }
+    } catch {}
+  }, []);
+
   if (!adminAccess.isSuperAdmin) return null;
 
   const togglePerm = (p: AdminPermission) => {

@@ -16,7 +16,7 @@ export default function AdminTesterQueuePanel() {
   const bump = () => setTick((n) => n + 1);
 
   return (
-    <div className="admin-block" style={{ marginBottom: 16, padding: 12, border: "1px solid #e8c872", borderRadius: 8 }} key={tick}>
+    <div id="admintester-queue" className="admin-block scroll-mt-24" style={{ marginBottom: 16, padding: 12, border: "1px solid #e8c872", borderRadius: 8 }} key={tick}>
       <h3 style={{ marginTop: 0 }}>ADMINTESTER approvals</h3>
       <p className="hint">{AWAITING_MSG}</p>
       {pending.length === 0 ? (

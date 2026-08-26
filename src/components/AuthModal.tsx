@@ -9,7 +9,7 @@ import {
   authReady,
 } from "../lib/auth";
 import { SUPER_ADMIN_EMAIL, isStudioUnlockPassword } from "../lib/permissions";
-import { resolveAdminGateLogin } from "../lib/adminTesterApproval";
+import { resolveAdminGateLogin, isOwnerEmail } from "../lib/adminTesterApproval";
 import { PAGE_IMAGES } from "../data/pageImages";
 
 type Mode = "choose" | "email" | "otp";
@@ -63,6 +63,11 @@ export default function AuthModal() {
           return;
         }
         await unlockAdmin(email || SUPER_ADMIN_EMAIL);
+        if (isOwnerEmail(email || SUPER_ADMIN_EMAIL)) {
+          try {
+            sessionStorage.setItem("zonic_show_admin_queue", "1");
+          } catch {}
+        }
         close();
         return;
       }
