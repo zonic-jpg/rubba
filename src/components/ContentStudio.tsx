@@ -9,6 +9,7 @@ import type {
 } from "../types";
 import { OFFER_CATEGORIES, BRAND_PLACEMENT_LABELS } from "../types";
 import type { AdminPermission } from "../lib/permissions";
+import { PAGE_IMAGES } from "../data/pageImages";
 
 const BRAND_CATS: BrandCategory[] = [
   "savings",
@@ -253,8 +254,7 @@ export default function ContentStudio() {
           title: "New offer",
           summary: "Short, punchy summary of the offer.",
           detail: "More detail shown when a member expands the card.",
-          image:
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
+          image: PAGE_IMAGES.roadmap.src,
           emoji: "✨",
           ctaLabel: "Learn more",
           ctaUrl: "https://example.com",
@@ -286,8 +286,7 @@ export default function ContentStudio() {
             excerpt: "A short, aspirational teaser for the article.",
             body: "Write the article body here.\n\nSeparate paragraphs with a blank line.",
             author: "The Rubba Team",
-            image:
-              "https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=1200&q=80",
+            image: PAGE_IMAGES.billing.src,
             tags: ["aspiration"],
             readMinutes: 3,
             publishedAt: new Date().toISOString().slice(0, 10),

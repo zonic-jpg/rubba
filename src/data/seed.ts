@@ -1,4 +1,5 @@
 import type { SiteContent, MonetizationGates } from "../types";
+import { PAGE_IMAGES } from "./pageImages";
 
 export const DEFAULT_MONETIZATION: MonetizationGates = {
   userGate: {
@@ -431,7 +432,7 @@ export const MOCK_CONTENT: SiteContent = {
       summary: "Free-to-start, career-focused coding programme for African talent.",
       detail:
         "A rigorous, mentor-backed pathway into software engineering. Rubba members get priority onboarding and a study-buddy match to keep momentum through the tough weeks.",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
+      image: PAGE_IMAGES.roadmap.src,
       emoji: "💻",
       ctaLabel: "Explore programme",
       ctaUrl: "https://www.alxafrica.com",
@@ -448,7 +449,7 @@ export const MOCK_CONTENT: SiteContent = {
       summary: "Exclusive financing on reliable sedans & SUVs for planners.",
       detail:
         "Structured, transparent vehicle financing with a first-service package included. Bring your Rubba roadmap to a partner dealer to unlock the member rate.",
-      image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+      image: PAGE_IMAGES.inspiration.src,
       emoji: "🚗",
       ctaLabel: "See member rate",
       ctaUrl: "https://www.toyota.com.ng",
@@ -465,7 +466,7 @@ export const MOCK_CONTENT: SiteContent = {
       summary: "Locked education savings with a bonus first-month match.",
       detail:
         "Open a goal-locked education fund and Cowrywise matches part of your first contribution for Rubba members. Discipline made a little easier.",
-      image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80",
+      image: PAGE_IMAGES.hero.src,
       emoji: "🎓",
       ctaLabel: "Open EduSave",
       ctaUrl: "https://www.cowrywise.com",
@@ -482,7 +483,7 @@ export const MOCK_CONTENT: SiteContent = {
       summary: "Global remote roles for skilled African professionals.",
       detail:
         "Get matched to vetted remote engineering and product roles with international teams. Rubba members receive a CV polish checklist to stand out.",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
+      image: PAGE_IMAGES.roadmap.src,
       emoji: "🌍",
       ctaLabel: "Join network",
       ctaUrl: "https://www.andela.com",
@@ -498,7 +499,7 @@ export const MOCK_CONTENT: SiteContent = {
       summary: "Automate savings and lock funds toward any milestone.",
       detail:
         "Set it and forget it. Automate a slice of every inflow into a goal vault that matches a step on your Rubba roadmap. Withdraw only on your set date.",
-      image: "https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=800&q=80",
+      image: PAGE_IMAGES.billing.src,
       emoji: "🐷",
       ctaLabel: "Start a vault",
       ctaUrl: "https://www.piggyvest.com",
@@ -514,7 +515,7 @@ export const MOCK_CONTENT: SiteContent = {
       summary: "Thousands of certificates; a free month for planners.",
       detail:
         "Access job-relevant certificates from top universities. Rubba members get an extended trial to complete a course that maps to a career goal.",
-      image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80",
+      image: PAGE_IMAGES.hero.src,
       emoji: "📚",
       ctaLabel: "Browse courses",
       ctaUrl: "https://www.coursera.org",
@@ -531,7 +532,7 @@ export const MOCK_CONTENT: SiteContent = {
       summary: "Affordable health cover for you and your dependants.",
       detail:
         "Right-sized plans that protect your savings from surprise medical bills. Member onboarding includes a quick needs assessment.",
-      image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+      image: PAGE_IMAGES.inspiration.src,
       emoji: "🏥",
       ctaLabel: "Get a quote",
       ctaUrl: "https://www.axamansard.com",
@@ -547,7 +548,7 @@ export const MOCK_CONTENT: SiteContent = {
       summary: "Rent-to-own and staged payment estates nationwide.",
       detail:
         "Move from renting to owning with staged plans that fit a real budget. Rubba members can book a viewing and a free affordability chat.",
-      image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+      image: PAGE_IMAGES.inspiration.src,
       emoji: "🏠",
       ctaLabel: "View estates",
       ctaUrl: "https://www.mixtafrica.com",
@@ -567,7 +568,7 @@ export const MOCK_CONTENT: SiteContent = {
       body:
         "We're wired to chase the big moment — the deal, the windfall, the overnight change. But wealth for most people is boring on purpose.\n\nConsider two people. One waits for a ₦2m windfall that may never come. The other automates ₦20,000 a month into a money-market fund. Within a few years, the consistent saver has a buffer, a habit, and options — while the other is still waiting.\n\nThe lesson isn't that big wins don't matter. It's that you can't schedule them. You can schedule ₦20k. Start with a number so small it feels almost silly, automate it, and let time do the heavy lifting. Progress beats perfection, every single month.",
       author: "The Rubba Team",
-      image: "https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=1200&q=80",
+      image: PAGE_IMAGES.billing.src,
       tags: ["mindset", "savings"],
       readMinutes: 4,
       publishedAt: "2025-06-01",
@@ -584,7 +585,7 @@ export const MOCK_CONTENT: SiteContent = {
       body:
         "For a long time, opportunity meant proximity. You had to be in Lagos, or abroad, to reach the good rooms. That's changing fast.\n\nRemote work, global talent networks, and online credentials mean a developer in Enugu can bill a team in Berlin. A designer in Kano can serve clients in Toronto. The bottleneck is no longer geography — it's skill, consistency, and visibility.\n\nPick one skill the world pays for. Give it 12 focused months. Build in public so people can find you. Your city is where you live, not the limit of where you can earn.",
       author: "Community Contributor",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1200&q=80",
+      image: PAGE_IMAGES.roadmap.src,
       tags: ["career", "aspiration"],
       readMinutes: 5,
       publishedAt: "2025-06-14",
@@ -601,7 +602,7 @@ export const MOCK_CONTENT: SiteContent = {
       body:
         "Most people stall on the total: 'A house is ₦35m, I can't do that.' True — but you're never asked to pay ₦35m at once.\n\nA home is a sequence: a deposit target, a scheme or mortgage, and a steady contribution you can actually keep. Break the wall into bricks. What's the deposit? How many months to save it? Which co-operative or rent-to-own route fits your income?\n\nWhen you plan it as a timeline instead of a price tag, the impossible becomes a schedule. And schedules, unlike wishes, can be kept.",
       author: "The Rubba Team",
-      image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80",
+      image: PAGE_IMAGES.inspiration.src,
       tags: ["home", "planning"],
       readMinutes: 4,
       publishedAt: "2025-07-02",
