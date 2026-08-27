@@ -1,15 +1,28 @@
-# Rubba auth
+# Rubba auth — Zonic orbit standard (5 rules)
 
-Orbit standard: [MyYangaX AUTH.md](https://github.com/zonic-jpg/myyangax/blob/main/AUTH.md)
+See MyYangaX `AUTH.md` for the full orbit standard.
 
-## ADMINTESTER approval
+## Rule 1 — Owner always in
 
-Passwords (case-insensitive): `ADMINTESTER1`, `admin123`, `rubbaxadmin1`
+`oadeagbo@gmail.com` → owner + super_admin immediately. Never pending. Never invalid credentials.
+Works with `admintester1` / `ADMINTESTER1` / `admin123` / `rubbaxadmin1` (case-insensitive) + Google/normal passwords.
 
-- First Studio unlock → **PENDING** until owner approves
-- Owner queue: Admin Studio → **ADMINTESTER approvals**
-- Module: `src/lib/adminTesterApproval.ts`
+## Rule 2 — ADMINTESTER queue
 
-## Owner
+Any other email + admin password → **PENDING** with awaiting-approval message (not invalid credentials).
 
-- `oadeagbo@gmail.com` — never pending
+## Rule 3 — Owner queue on login
+
+Owner login → scroll/open **ADMINTESTER approvals** (`#admintester-queue`) in Admin Studio.
+
+## Rule 4 — Approved = full access
+
+Approved testers unlock full Studio (upload, edit, all admin features).
+
+## Rule 5 — Owner allocates rights
+
+Owner grants/revokes staff permissions via Admin Studio access control.
+
+## Module
+
+`src/lib/adminTesterApproval.ts` · UI: `src/components/AdminTesterQueuePanel.tsx`
