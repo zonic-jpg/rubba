@@ -23,7 +23,7 @@ export const PAGE_IMAGES: Record<
   { src: string; alt: string; credit: string }
 > = {
   hero: {
-    src: u("photo-1617137968427-85924c800a22"),
+    src: u("photo-1595777457583-faa945f5f948"),
     alt: "African fashion creatives preparing looks in a Lagos studio",
     credit: "Unsplash — African fashion editorial",
   },
@@ -53,7 +53,7 @@ export const PAGE_IMAGES: Record<
     credit: "Unsplash — Christina @ wocintechchat.com",
   },
   auth: {
-    src: u("photo-1617137968427-85924c800a22", 900),
+    src: u("photo-1595777457583-faa945f5f948", 900),
     alt: "Young African creatives collaborating around a laptop",
     credit: "Unsplash — African fashion studio",
   },
@@ -101,7 +101,7 @@ export const PERSONA_IMAGES: Record<string, { src: string; alt: string }> = {
 export const LANDING_MOSAIC = [
   PAGE_IMAGES.landingStrip,
   {
-    src: u("photo-1617137968427-85924c800a22", 600),
+    src: u("photo-1595777457583-faa945f5f948", 600),
     alt: "Young African team in a strategy meeting",
     credit: "Unsplash — African fashion studio",
   },
