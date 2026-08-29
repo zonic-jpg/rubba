@@ -7,6 +7,7 @@ import {
   sendEmailOtp,
   verifyOtp,
   authReady,
+  googleAuthEnabled,
 } from "../lib/auth";
 import { SUPER_ADMIN_EMAIL, isStudioUnlockPassword } from "../lib/permissions";
 import { resolveAdminGateLogin, isOwnerEmail } from "../lib/adminTesterApproval";
@@ -21,6 +22,7 @@ export default function AuthModal() {
   const [isSignup, setIsSignup] = useState(true);
   const [email, setEmail] = useState(SUPER_ADMIN_EMAIL);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -39,6 +41,10 @@ export default function AuthModal() {
 
   const google = async () => {
     setErr(null);
+    if (!googleAuthEnabled) {
+      setErr("Google sign-in is not configured for this site.");
+      return;
+    }
     if (!authReady) {
       await loginDemo(email || SUPER_ADMIN_EMAIL);
       close();
@@ -129,12 +135,16 @@ export default function AuthModal() {
 
         {mode === "choose" && (
           <div className="auth-body">
-            <button type="button" className="auth-google" onClick={google}>
-              <span className="g">G</span> Continue with Google
-            </button>
-            <div className="auth-or">
-              <span>or</span>
-            </div>
+            {googleAuthEnabled ? (
+              <button type="button" className="auth-google" onClick={google}>
+                <span className="g">G</span> Continue with Google
+              </button>
+            ) : null}
+            {googleAuthEnabled ? (
+              <div className="auth-or">
+                <span>or</span>
+              </div>
+            ) : null}
             <button type="button" className="auth-primary" onClick={() => setMode("email")}>
               Use email &amp; password
             </button>
@@ -158,13 +168,25 @@ export default function AuthModal() {
             <label className="auth-l">
               Password {!authReady && <span className="hint">(optional in demo)</span>}
             </label>
-            <input
-              className="auth-in"
-              type="password"
-              value={password}
-              placeholder={authReady ? "" : "Leave blank, or admin password"}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div style={{ position: "relative" }}>
+              <input
+                className="auth-in"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                placeholder={authReady ? "" : "Leave blank, or admin password"}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ paddingRight: 44 }}
+              />
+              <button
+                type="button"
+                className="auth-back"
+                style={{ position: "absolute", right: 4, top: 4, margin: 0, padding: "6px 10px" }}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
             <button
               type="button"
               className="auth-primary"
