@@ -10,7 +10,7 @@
 // deploy step done in your account; see ACTIVATION.md. The code below already
 // gives one shared account everywhere.
 
-import { supabase, hasBackend } from "./supabase";
+import { supabase, hasBackend, googleAuthEnabled } from "./supabase";
 import { SUPER_ADMIN_EMAIL } from "./permissions";
 
 export type ZUser = { id: string; email: string | null; name: string | null };
@@ -22,9 +22,12 @@ function mapUser(u: any): ZUser | null {
   return { id: u.id, email: u.email ?? null, name: u.user_metadata?.full_name ?? u.user_metadata?.name ?? null };
 }
 
+export { googleAuthEnabled };
+
 /** Continue with Google (redirects back to the app). */
 export async function continueWithGoogle(redirectTo: string = window.location.origin) {
   if (!supabase) throw new Error("Auth not configured");
+  if (!googleAuthEnabled) throw new Error("Google sign-in is not configured for this site.");
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo },
