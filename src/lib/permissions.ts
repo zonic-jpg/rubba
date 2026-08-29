@@ -35,12 +35,12 @@ export const ALL_PERMISSIONS: AdminPermission[] = [
 ];
 
 export const PERMISSION_LABELS: Record<AdminPermission, string> = {
-  edit_content: "Load & edit content (personas, footer, logo)",
-  set_prices: "Set prices & plan limits",
-  manage_brands: "Manage brand cards & sponsors",
-  edit_messaging: "Edit site messaging & copy",
-  toggle_data_mode: "Switch mock ↔ production data",
-  publish_site: "Save & publish to live site",
+  edit_content: "Edit site content (stories, footer, logo)",
+  set_prices: "Set prices and plan limits",
+  manage_brands: "Manage brand adverts and sponsors",
+  edit_messaging: "Edit homepage and on-screen text",
+  toggle_data_mode: "Switch between test/demo data and live data",
+  publish_site: "Save changes and publish to the live site",
 };
 
 export type StaffMember = {

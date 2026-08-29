@@ -77,13 +77,13 @@ function MonetizationGateCards({
   return (
     <>
       <div className="sgrp">
-        <div className="sgrp-t">User monetization gate</div>
+        <div className="sgrp-t">Member plans and free limits</div>
         <p className="studio-note" style={{ margin: "0 0 8px" }}>
           {userGate.active
-            ? "ACTIVE — free allowance is enforced, Plans/billing CTAs are visible."
-            : "OFF — all members have unlimited free access. Plans/billing CTAs are hidden."}
+            ? "ON — free monthly limit is enforced, and Plans buttons are shown."
+            : "OFF — everyone can plan freely. Plans buttons are hidden."}
         </p>
-        <label className="fl">Plan name</label>
+        <label className="fl">Plan name shown to members</label>
         <input
           className="fld"
           value={userGate.planName}
@@ -127,10 +127,10 @@ function MonetizationGateCards({
       </div>
 
       <div className="sgrp">
-        <div className="sgrp-t">Brand monetization gate</div>
+        <div className="sgrp-t">Brand advert packages</div>
         <p className="studio-note" style={{ margin: "0 0 8px" }}>
           {brandGate.active
-            ? "ACTIVE — brand placements are priced. Free trial slots apply."
+            ? "ON — brand placements can be priced. Free trial slots apply."
             : "OFF — all brand placements are free for partners."}
         </p>
         <label className="fl">Placement types</label>
@@ -317,6 +317,31 @@ export default function ContentStudio() {
             {adminAccess.isSuperAdmin ? " · Super admin" : ` · ${adminAccess.permissions.length} permission(s)`}
           </div>
 
+          <Gate perm="toggle_data_mode">
+            <div className="sgrp data-mode-panel">
+              <div className="sgrp-t">Which data should the site use?</div>
+              <p className="studio-note" style={{ margin: "0 0 10px" }}>
+                Choose <strong>test/demo data</strong> to try features safely with sample content.
+                Choose <strong>live/production data</strong> to use real content from the database.
+              </p>
+              <div className="mode-toggle">
+                <button type="button" className={dataMode === "mock" ? "on" : ""} onClick={() => setDataMode("mock")}>
+                  Use test/demo data
+                </button>
+                <button
+                  type="button"
+                  className={dataMode === "production" ? "on" : ""}
+                  onClick={() => setDataMode("production")}
+                >
+                  Use live/production data
+                </button>
+              </div>
+              <p className="hint" style={{ marginTop: 8 }}>
+                Currently using: <strong>{dataMode === "mock" ? "test/demo data" : "live/production data"}</strong>
+              </p>
+            </div>
+          </Gate>
+
           <AdminAccessPanel />
 
           <Gate perm="set_prices">
@@ -329,44 +354,26 @@ export default function ContentStudio() {
             <ServicePricingPanel />
           </Gate>
 
-          <Gate perm="toggle_data_mode">
-            <div className="sgrp">
-              <div className="sgrp-t">Data mode</div>
-              <div className="mode-toggle">
-                <button type="button" className={dataMode === "mock" ? "on" : ""} onClick={() => setDataMode("mock")}>
-                  Mock (local seed)
-                </button>
-                <button
-                  type="button"
-                  className={dataMode === "production" ? "on" : ""}
-                  onClick={() => setDataMode("production")}
-                >
-                  Production (Supabase)
-                </button>
-              </div>
-            </div>
-          </Gate>
-
           <Gate perm="set_prices">
             <div className="sgrp">
-              <div className="sgrp-t">Plan limits & payments</div>
-              <label className="fl">Free generations / month</label>
+              <div className="sgrp-t">Plan limits and payments</div>
+              <label className="fl">Free roadmap builds per month</label>
               <input
                 className="fld"
                 type="number"
                 value={settings.freeGenerationsPerMonth}
                 onChange={(e) => setSetting("freeGenerationsPerMonth", +e.target.value)}
               />
-              <label className="fl">Default gateway</label>
+              <label className="fl">Default payment method</label>
               <select
                 className="fld"
                 value={settings.defaultGateway}
                 onChange={(e) => setSetting("defaultGateway", e.target.value)}
               >
-                <option value="mock">mock</option>
-                <option value="paystack">paystack</option>
-                <option value="flutterwave">flutterwave</option>
-                <option value="stripe">stripe</option>
+                <option value="mock">Demo payments (test only)</option>
+                <option value="paystack">Paystack</option>
+                <option value="flutterwave">Flutterwave</option>
+                <option value="stripe">Stripe</option>
               </select>
               <label className="fl">
                 <input
@@ -374,7 +381,7 @@ export default function ContentStudio() {
                   checked={settings.mockPaymentsEnabled}
                   onChange={(e) => setSetting("mockPaymentsEnabled", e.target.checked)}
                 />{" "}
-                Enable demo payments
+                Allow demo payments for testing
               </label>
               {tiers.map((t, i) => (
                 <div key={t.id} className="admin-block">
@@ -406,20 +413,20 @@ export default function ContentStudio() {
 
           <Gate perm="edit_messaging">
             <div className="sgrp">
-              <div className="sgrp-t">Messaging</div>
+              <div className="sgrp-t">Homepage and on-screen text</div>
               {(
                 [
-                  "heroEyebrow",
-                  "heroLead",
-                  "antiHype",
-                  "tierIntro",
-                  "limitReached",
-                  "brandIntro",
-                  "trackingIntro",
+                  ["heroEyebrow", "Small label above the main headline"],
+                  ["heroLead", "Supporting sentence under the headline"],
+                  ["antiHype", "Honest note under the landing section"],
+                  ["tierIntro", "Intro text for paid plans"],
+                  ["limitReached", "Message when free monthly limit is used up"],
+                  ["brandIntro", "Intro text above brand adverts"],
+                  ["trackingIntro", "Intro text for ticking off plan steps"],
                 ] as const
-              ).map((k) => (
+              ).map(([k, label]) => (
                 <div key={k}>
-                  <label className="fl">{k}</label>
+                  <label className="fl">{label}</label>
                   <textarea className="fld" value={settings.messaging[k]} onChange={(e) => setMsg(k, e.target.value)} />
                 </div>
               ))}
@@ -428,9 +435,9 @@ export default function ContentStudio() {
 
           <Gate perm="manage_brands">
             <div className="sgrp">
-              <div className="sgrp-t">Brand cards</div>
+              <div className="sgrp-t">Brand adverts on the plan</div>
               <button type="button" className="mini" onClick={addBrand}>
-                + Add brand
+                + Add brand advert
               </button>
               {brands.map((b, i) => (
                 <div key={b.id} className="admin-block">
@@ -548,7 +555,7 @@ export default function ContentStudio() {
           <Gate perm="edit_content">
             <>
               <div className="sgrp">
-                <div className="sgrp-t">Brand & logo</div>
+                <div className="sgrp-t">Site name and logo</div>
                 <input
                   type="file"
                   accept="image/*"

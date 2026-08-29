@@ -1,12 +1,9 @@
 /**
- * Page imagery — bundled African photography + verified Unsplash where live.
- * Local assets in /public avoid mislabeled or 404 Unsplash IDs.
+ * Page imagery — varied Nigerian / West-African youth photography.
+ * Local assets in /public/youth (Zonic creative library) + celebration hero.
  */
 
-const u = (id: string, w = 1400) =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
-
-const LOCAL_HERO = "/hero-african.jpg";
+const y = (file: string) => `/youth/${file}`;
 
 export type PageImageKey =
   | "hero"
@@ -24,73 +21,92 @@ export const PAGE_IMAGES: Record<
   { src: string; alt: string; credit: string }
 > = {
   hero: {
-    src: LOCAL_HERO,
-    alt: "Nigerian celebration — woman in Ankara gele at an Owanbe",
-    credit: "Zonic — OwanbeX celebration photography",
+    src: y("day-portrait.jpg"),
+    alt: "Young Nigerian woman in Ankara dress — confident, future-facing",
+    credit: "Zonic — Nigerian youth creative library",
   },
   landingStrip: {
-    src: LOCAL_HERO,
-    alt: "Nigerian celebration with family and friends in traditional dress",
-    credit: "Zonic — OwanbeX celebration photography",
+    src: y("runway-energy.jpg"),
+    alt: "Young Nigerian models on a fashion runway in modern traditional dress",
+    credit: "Zonic — Nigerian youth creative library",
   },
   profile: {
-    src: LOCAL_HERO,
-    alt: "Young African woman planning her next financial milestone",
-    credit: "Zonic — OwanbeX celebration photography",
+    src: y("studio-creatives.jpg"),
+    alt: "Young West-African creative smiling in a bright plant-filled space",
+    credit: "Zonic — Nigerian youth creative library",
   },
   inspiration: {
-    src: LOCAL_HERO,
-    alt: "Friends celebrating progress at an African art gallery opening",
-    credit: "Zonic — OwanbeX celebration photography",
+    src: y("brand-builders.jpg"),
+    alt: "Young Nigerian entrepreneur in a Lagos fashion boutique",
+    credit: "Zonic — Nigerian youth creative library",
   },
   plans: {
-    src: LOCAL_HERO,
-    alt: "Nigerian founders reviewing plans on a whiteboard in Lagos",
-    credit: "Zonic — OwanbeX celebration photography",
+    src: y("plan-your-look.jpg"),
+    alt: "Young Nigerian planner styling the week ahead",
+    credit: "Zonic — Nigerian youth creative library",
   },
   roadmap: {
-    src: LOCAL_HERO,
-    alt: "Young African startup team building something together",
-    credit: "Zonic — OwanbeX celebration photography",
+    src: y("social-reels.jpg"),
+    alt: "Young Nigerian man capturing creative work on his phone",
+    credit: "Zonic — Nigerian youth creative library",
   },
   auth: {
-    src: LOCAL_HERO,
-    alt: "Young African creatives collaborating around a laptop",
-    credit: "Zonic — OwanbeX celebration photography",
+    src: y("campus-style.jpg"),
+    alt: "Young Nigerian adults with campus and street style energy",
+    credit: "Zonic — Nigerian youth creative library",
   },
   billing: {
-    src: u("photo-1520975916090-3105956dac38", 900),
-    alt: "Confident young African entrepreneur ready to invest in her future",
-    credit: "Unsplash — editorial portrait",
+    src: y("wardrobe-goals.jpg"),
+    alt: "Young Nigerian adult investing in their next chapter",
+    credit: "Zonic — Nigerian youth creative library",
   },
   community: {
-    src: LOCAL_HERO,
-    alt: "Young people learning together beside African art and craft",
+    src: y("owanbe-celebration.jpg"),
+    alt: "Nigerian celebration — young adults at an Owanbe in traditional dress",
     credit: "Zonic — OwanbeX celebration photography",
   },
 };
 
-/** Persona card portraits — mapped by persona id in seed data */
+/** Persona card portraits — distinct faces/scenes per persona */
 export const PERSONA_IMAGES: Record<string, { src: string; alt: string }> = {
-  p1: { src: LOCAL_HERO, alt: "Young Nigerian professional in business attire" },
-  p2: { src: LOCAL_HERO, alt: "Young African couple planning their family future" },
-  p3: { src: LOCAL_HERO, alt: "Young Nigerian entrepreneur in her workspace" },
-  p4: { src: LOCAL_HERO, alt: "African engineer reviewing plans at his desk" },
-  p5: { src: LOCAL_HERO, alt: "Determined young African woman focused on her goals" },
-  p6: { src: LOCAL_HERO, alt: "African couple reviewing property investment options" },
+  p1: { src: y("brand-builders.jpg"), alt: "Young Nigerian professional building his brand" },
+  p2: { src: y("runway-energy.jpg"), alt: "Young Nigerian couple energy — celebration and ambition" },
+  p3: { src: y("day-portrait.jpg"), alt: "Young Nigerian entrepreneur in vibrant Ankara" },
+  p4: { src: y("social-reels.jpg"), alt: "Young Nigerian engineer / creative with a plan" },
+  p5: { src: y("friends-week.jpg"), alt: "Determined young Nigerian woman focused on her goals" },
+  p6: { src: y("studio-creatives.jpg"), alt: "Young African pair energy — home and future planning" },
 };
 
-/** Mosaic tiles for the landing “real stories” band */
+/** Mosaic tiles for the landing “real stories” band — varied scenes */
 export const LANDING_MOSAIC = [
-  PAGE_IMAGES.landingStrip,
   {
-    src: LOCAL_HERO,
-    alt: "Young African team in a strategy meeting",
-    credit: "Zonic — OwanbeX celebration photography",
+    src: y("day-portrait.jpg"),
+    alt: "Young Nigerian woman ready for her next milestone",
+    credit: "Zonic — Nigerian youth creative library",
   },
   {
-    src: LOCAL_HERO,
-    alt: "Young African students studying together beside heritage art",
-    credit: "Zonic — OwanbeX celebration photography",
+    src: y("brand-builders.jpg"),
+    alt: "Young Nigerian founder in his creative workspace",
+    credit: "Zonic — Nigerian youth creative library",
+  },
+  {
+    src: y("runway-energy.jpg"),
+    alt: "Young Nigerian creatives owning the runway",
+    credit: "Zonic — Nigerian youth creative library",
   },
 ] as const;
+
+/** Extra offer/blog art so seed cards aren’t one repeated face */
+export const OFFER_IMAGES = {
+  courses: y("social-reels.jpg"),
+  mobility: y("campus-style.jpg"),
+  education: y("studio-creatives.jpg"),
+  career: y("brand-builders.jpg"),
+  finance: y("plan-your-look.jpg"),
+  lifestyle: y("day-portrait.jpg"),
+  health: y("friends-week.jpg"),
+  housing: y("wardrobe-goals.jpg"),
+  blog1: y("photo-crew.jpg"),
+  blog2: y("owanbe-celebration.jpg"),
+  blog3: y("runway-energy.jpg"),
+} as const;

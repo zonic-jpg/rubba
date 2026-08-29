@@ -11,6 +11,7 @@ import {
 import { SUPER_ADMIN_EMAIL, isStudioUnlockPassword } from "../lib/permissions";
 import { resolveAdminGateLogin, isOwnerEmail } from "../lib/adminTesterApproval";
 import { PAGE_IMAGES } from "../data/pageImages";
+import RubbaMark from "./RubbaMark";
 
 type Mode = "choose" | "email" | "otp";
 
@@ -120,7 +121,7 @@ export default function AuthModal() {
         </button>
         <div className="auth-head">
           <div className="auth-logo">
-            🪔 <b>{content.brand.name}</b>
+            <RubbaMark size={28} /> <b>{content.brand.name}</b>
           </div>
           <h2>{isSignup ? "Create your account" : "Welcome back"}</h2>
           <p className="auth-reason">Save plans and track progress across devices.</p>

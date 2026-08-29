@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import ContentStudio from "./components/ContentStudio";
 import AuthModal from "./components/AuthModal";
 import BillingModal from "./components/BillingModal";
+import RubbaMark from "./components/RubbaMark";
 import { StoreProvider, useStore } from "./lib/store";
 import { track } from "./lib/analytics";
 
@@ -34,11 +35,13 @@ function Shell() {
       <div className="site-shell">
         <header className="head">
           <NavLink to="/" className="brand" aria-label="Rubba home">
-            {content.brand.logoImage ? (
+            {content.brand.logoImage && !content.brand.logoImage.includes("rubba-lamp") ? (
               <img className="logo-img" src={content.brand.logoImage} alt="Rubba" />
             ) : (
               <>
-                <div className="lamp">🪔</div>
+                <span className="lamp">
+                  <RubbaMark size={34} />
+                </span>
                 <b>{content.brand.name}</b>
               </>
             )}
@@ -52,8 +55,8 @@ function Shell() {
             </NavLink>
           </nav>
           <nav className="head-auth" aria-label="Account">
-            <span className="mode-pill" title="Data source">
-              {dataMode === "mock" ? "Mock" : "Live"}
+            <span className="mode-pill" title="Which data the site is using">
+              {dataMode === "mock" ? "Demo data" : "Live data"}
             </span>
             {content.monetization?.userGate.active && (
               <button type="button" className="head-link head-plans" onClick={openBilling}>

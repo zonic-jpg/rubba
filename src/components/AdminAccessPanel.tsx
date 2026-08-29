@@ -103,14 +103,15 @@ export default function AdminAccessPanel() {
   return (
     <div className="sgrp admin-access">
       <AdminTesterQueuePanel />
-      <div className="sgrp-t">Super admin · {superEmail}</div>
+      <div className="sgrp-t">Owner controls · {superEmail}</div>
       <p className="studio-note">
-        Grant tick-box rights to colleagues, or transfer super admin to another email (they replace you — no co-admin join).
+        Give colleagues specific editing rights, or hand over full owner control to another email
+        (they replace you — there is only one owner).
       </p>
 
       <div className="admin-block">
-        <strong>Grant staff access</strong>
-        <label className="fl">Email address</label>
+        <strong>Give a colleague access</strong>
+        <label className="fl">Their email address</label>
         <input
           className="fld"
           type="email"
@@ -127,13 +128,13 @@ export default function AdminAccessPanel() {
           ))}
         </div>
         <button type="button" className="mini" disabled={busy} onClick={grant}>
-          Grant access
+          Give access
         </button>
       </div>
 
       {staff.length > 0 && (
         <div className="admin-block">
-          <strong>Staff with access</strong>
+          <strong>People with access</strong>
           {staff.map((s) => (
             <div key={s.email} className="staff-row">
               <div>
@@ -149,11 +150,11 @@ export default function AdminAccessPanel() {
       )}
 
       <div className="admin-block transfer-block">
-        <strong>Transfer super admin</strong>
+        <strong>Hand over owner control</strong>
         <p className="transfer-warn">
-          Enter the new super admin&apos;s email and click <b>Transfer</b>. You will no longer be super admin.
+          Enter the new owner&apos;s email and click <b>Transfer</b>. You will no longer be the owner.
         </p>
-        <label className="fl">New super admin email</label>
+        <label className="fl">New owner email</label>
         <input
           className="fld"
           type="email"
@@ -162,7 +163,7 @@ export default function AdminAccessPanel() {
           onChange={(e) => setTransferEmail(e.target.value)}
         />
         <button type="button" className="transfer-btn" disabled={busy || !transferEmail} onClick={transfer}>
-          Transfer super admin
+          Transfer owner control
         </button>
       </div>
 

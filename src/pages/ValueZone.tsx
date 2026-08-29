@@ -3,20 +3,13 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useStore } from "../lib/store";
 import PageHero from "../components/PageHero";
 import { track } from "../lib/analytics";
+import {
+  isBrandLinkSaved,
+  loadSavedBrandLinks,
+  toggleSavedBrandLink,
+} from "../lib/savedBrandLinks";
 import { OFFER_CATEGORIES, OFFER_CATEGORY_LABELS } from "../types";
 import type { BrandOffer, BlogPost, OfferCategory } from "../types";
-
-const SAVED_KEY = "rubba_saved_offers";
-
-function loadSaved(): Set<string> {
-  try {
-    const raw = localStorage.getItem(SAVED_KEY);
-    if (raw) return new Set(JSON.parse(raw) as string[]);
-  } catch {
-    /* ignore */
-  }
-  return new Set();
-}
 
 export default function ValueZone() {
   const { content } = useStore();
@@ -77,7 +70,10 @@ export default function ValueZone() {
 
 function OffersTab({ offers }: { offers: BrandOffer[] }) {
   const [filter, setFilter] = useState<OfferCategory | "all">("all");
-  const [saved, setSaved] = useState<Set<string>>(() => loadSaved());
+  const [savedIds, setSavedIds] = useState<Set<string>>(() => {
+    const links = loadSavedBrandLinks(offers);
+    return new Set(links.map((l) => l.id));
+  });
 
   const active = useMemo(
     () => offers.filter((o) => o.active).sort((a, b) => a.sort - b.sort),
@@ -89,21 +85,21 @@ function OffersTab({ offers }: { offers: BrandOffer[] }) {
   );
   const list = filter === "all" ? active : active.filter((o) => o.category === filter);
 
-  const toggleSave = (id: string) => {
-    setSaved((prev) => {
+  const toggleSave = (o: BrandOffer) => {
+    const nowSaved = toggleSavedBrandLink({
+      id: o.id,
+      title: o.title,
+      url: o.ctaUrl,
+      sponsor: o.sponsor,
+      kind: "offer",
+    });
+    setSavedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else {
-        next.add(id);
-        track("offer_cta_click", { action: "save", offer: id });
-      }
-      try {
-        localStorage.setItem(SAVED_KEY, JSON.stringify([...next]));
-      } catch {
-        /* ignore */
-      }
+      if (nowSaved) next.add(o.id);
+      else next.delete(o.id);
       return next;
     });
+    if (nowSaved) track("offer_cta_click", { action: "save", offer: o.id });
   };
 
   return (
@@ -130,14 +126,15 @@ function OffersTab({ offers }: { offers: BrandOffer[] }) {
 
       <div className="offer-grid">
         {list.map((o) => (
-          <OfferCard key={o.id} offer={o} saved={saved.has(o.id)} onSave={() => toggleSave(o.id)} />
+          <OfferCard key={o.id} offer={o} saved={savedIds.has(o.id)} onSave={() => toggleSave(o)} />
         ))}
       </div>
       {list.length === 0 && <p className="vz-empty">No offers in this category yet — check back soon.</p>}
 
       <p className="vz-disclaimer">
         Offers are sponsored partner options for Rubba members — always verify terms before you
-        commit. Rubba is a planning tool, not a financial adviser.
+        commit. Rubba is a planning tool, not a financial adviser. Partner links stay in your
+        profile until you choose to open them later.
       </p>
     </>
   );
@@ -174,7 +171,7 @@ function OfferCard({
           className={`offer-save ${saved ? "on" : ""}`}
           onClick={onSave}
           aria-pressed={saved}
-          title={saved ? "Saved to your plan" : "Save to your plan"}
+          title={saved ? "Saved to your profile" : "Save link to your profile"}
         >
           {saved ? "★" : "☆"}
         </button>
@@ -183,20 +180,22 @@ function OfferCard({
         <span className="offer-cat">{OFFER_CATEGORY_LABELS[offer.category]}</span>
         <h3>{offer.title}</h3>
         <p className="offer-summary">{offer.summary}</p>
-        {open && <p className="offer-detail">{offer.detail}</p>}
+        {open && (
+          <>
+            <p className="offer-detail">{offer.detail}</p>
+            <p className="offer-save-hint">
+              Save the partner link to your profile for later — Rubba does not open external sites
+              automatically.
+            </p>
+          </>
+        )}
         <div className="offer-foot">
           <button type="button" className="offer-more" onClick={expand}>
-            {open ? "Show less" : "More detail"}
+            {open ? "Show less" : "See what you get"}
           </button>
-          <a
-            className="offer-cta"
-            href={offer.ctaUrl}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            onClick={() => track("offer_cta_click", { action: "visit", offer: offer.id, sponsor: offer.sponsor })}
-          >
-            {offer.ctaLabel} →
-          </a>
+          <button type="button" className={`offer-cta offer-cta-btn ${saved ? "on" : ""}`} onClick={onSave}>
+            {saved ? "Saved to profile ✓" : "Save link for later"}
+          </button>
         </div>
         <span className="offer-sponsor">Sponsored · {offer.sponsor}</span>
       </div>
@@ -254,7 +253,8 @@ function Article({
   post: BlogPost | null;
   onBack: () => void;
   offers: BrandOffer[];
-}) {
+  }) {
+  const [tick, setTick] = useState(0);
   useEffect(() => {
     if (post) track("blog_view", { post: post.id, tags: post.tags });
   }, [post]);
@@ -274,6 +274,7 @@ function Article({
   }
 
   const paragraphs = post.body.split("\n\n");
+  const related = offers.filter((o) => o.active).slice(0, 2);
 
   return (
     <div className="vz article">
@@ -304,29 +305,39 @@ function Article({
         <b>Community perspective:</b> Aspirational reads, not regulated financial advice. Always do
         your own research before acting.
       </div>
-      {offers.some((o) => o.active) && (
+      {related.length > 0 && (
         <>
           <div className="sec-t violet">Turn inspiration into action</div>
-          <div className="offer-grid offer-grid--mini">
-            {offers
-              .filter((o) => o.active)
-              .slice(0, 2)
-              .map((o) => (
-                <a
-                  key={o.id}
-                  className="offer-mini"
-                  href={o.ctaUrl}
-                  target="_blank"
-                  rel="noopener noreferrer sponsored"
-                  onClick={() => track("offer_cta_click", { action: "visit_from_blog", offer: o.id })}
-                >
+          <div className="offer-grid offer-grid--mini" key={tick}>
+            {related.map((o) => {
+              const saved = isBrandLinkSaved(o.id);
+              return (
+                <article key={o.id} className="offer-mini offer-mini-static">
                   <span className="offer-mini-emoji">{o.emoji}</span>
                   <span className="offer-mini-body">
                     <b>{o.title}</b>
                     <span>{o.summary}</span>
+                    <button
+                      type="button"
+                      className={`offer-mini-save ${saved ? "on" : ""}`}
+                      onClick={() => {
+                        toggleSavedBrandLink({
+                          id: o.id,
+                          title: o.title,
+                          url: o.ctaUrl,
+                          sponsor: o.sponsor,
+                          kind: "offer",
+                        });
+                        track("offer_cta_click", { action: "save_from_blog", offer: o.id });
+                        setTick((n) => n + 1);
+                      }}
+                    >
+                      {saved ? "Saved to profile ✓" : "Save link for later"}
+                    </button>
                   </span>
-                </a>
-              ))}
+                </article>
+              );
+            })}
           </div>
         </>
       )}

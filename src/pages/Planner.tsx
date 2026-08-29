@@ -9,6 +9,8 @@ import BrandStrip from "../components/BrandStrip";
 import TierCards from "../components/TierCards";
 import { LANDING_MOSAIC, PERSONA_IMAGES } from "../data/pageImages";
 import { ageBand, profileCompletion, track } from "../lib/analytics";
+import { loadSavedBrandLinks, toggleSavedBrandLink } from "../lib/savedBrandLinks";
+import type { SavedBrandLink } from "../lib/savedBrandLinks";
 
 const EMPLOYMENT_OPTIONS = [
   "",
@@ -28,6 +30,45 @@ const INTEREST_TAGS = [
   "Family & health",
   "Travel & lifestyle",
 ];
+
+function SavedBrandLinksPanel() {
+  const [links, setLinks] = useState<SavedBrandLink[]>(() => loadSavedBrandLinks());
+  const refresh = () => setLinks(loadSavedBrandLinks());
+
+  useEffect(() => {
+    const onFocus = () => refresh();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
+
+  if (!links.length) return null;
+
+  return (
+    <div className="saved-links-box" aria-live="polite">
+      <h3>Saved brand links</h3>
+      <p>Partner links you saved from adverts — kept here for later. Rubba does not open them for you.</p>
+      <ul className="saved-links-list">
+        {links.map((l) => (
+          <li key={l.id}>
+            <span>
+              <b>{l.title}</b>
+              <span className="hint"> · {l.sponsor}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                toggleSavedBrandLink(l);
+                refresh();
+              }}
+            >
+              Remove
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export default function Planner() {
   const { content } = useStore();
@@ -229,6 +270,8 @@ function Step1({ onNext }: { onNext: () => void }) {
         Why we ask: optional details sharpen your plan and match offers. We anonymize them (age
         bands, never exact DOB) for aggregate insights and never sell your data.
       </p>
+
+      <SavedBrandLinksPanel />
 
       <div className="field">
         <label>Planning window</label>
