@@ -1,0 +1,55 @@
+{
+  "appId": "rubba",
+  "name": "Rubba",
+  "version": "1.1",
+  "tagline": "AI life-planning",
+  "description": "Goals, savings and milestones — Genie-assisted life planning for African cities.",
+  "url": "https://rubba.netlify.app",
+  "updatedAt": "2026-08-29T12:00:00.000Z",
+  "metrics": {
+    "activeUsers7d": 5120,
+    "returningUsers7d": 3380,
+    "sessions24h": 890,
+    "avgSessionSec": 540,
+    "plansCreated": 11240,
+    "aiCalls": 4860,
+    "milestonesHit": 2740,
+    "events": 176000
+  },
+  "mock": true,
+  "demographics": {
+    "mock": true,
+    "regions": [
+      { "label": "West Africa", "pct": 45 },
+      { "label": "East Africa", "pct": 22 },
+      { "label": "Diaspora", "pct": 18 },
+      { "label": "Southern Africa", "pct": 15 }
+    ],
+    "ageBands": [
+      { "label": "18–24", "pct": 22 },
+      { "label": "25–34", "pct": 46 },
+      { "label": "35–44", "pct": 24 },
+      { "label": "45+", "pct": 8 }
+    ],
+    "interests": [
+      { "label": "Life planning", "pct": 44 },
+      { "label": "Savings goals", "pct": 28 },
+      { "label": "Career", "pct": 18 },
+      { "label": "Other", "pct": 10 }
+    ]
+  },
+  "series7d": {
+    "activeUsers": [4200, 4380, 4560, 4720, 4880, 5010, 5120],
+    "sessions": [700, 740, 780, 810, 840, 870, 890]
+  },
+  "featured": [
+    { "title": "Wish → plan with Genie", "location": "Rubba" },
+    { "title": "City-aware cost goals", "location": "Rubba" },
+    { "title": "Savings milestones", "location": "Rubba" },
+    { "title": "Check-in reminders", "location": "Rubba" }
+  ],
+  "ingestHint": {
+    "push": "POST ${ZONICME_INGEST_URL} with X-Zonic-Api-Key",
+    "contract": "zonic-hub-ingest records[]"
+  }
+}
