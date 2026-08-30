@@ -8,9 +8,12 @@
 
 [build.environment]
   VITE_GOOGLE_AUTH = "false"
-  # Live mode — set VITE_SUPABASE_* in Netlify UI as well
+  # Live ArtStage host (public anon key — safe for client bake)
   VITE_DATA_MODE = "live"
+  VITE_SUPABASE_URL = "https://rtakonluhilokrvkrkxl.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0YWtvbmx1aGlsb2tydmtya3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NTMyODEsImV4cCI6MjA5NTAyOTI4MX0.DVV9dEbNDsKMqDTvJCBfC_1iKFYCqmYJ7hv__F-gj44"
   NODE_VERSION = "20"
+
 
 # SPA deep-link fallback for react-router
 [[redirects]]
