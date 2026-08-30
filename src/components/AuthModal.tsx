@@ -20,7 +20,7 @@ export default function AuthModal() {
   const { authOpen, closeAuth, content, loginDemo, unlockAdmin } = useStore();
   const [mode, setMode] = useState<Mode>("choose");
   const [isSignup, setIsSignup] = useState(true);
-  const [email, setEmail] = useState(SUPER_ADMIN_EMAIL);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState("");

@@ -60,6 +60,7 @@ type Store = {
   canGenerate: boolean;
   consumeGen: () => boolean;
   applyTier: (tierId: string) => void;
+  confirmPaymentReturn: (reference: string | null) => Promise<void>;
 
   billingOpen: boolean;
   openBilling: () => void;
@@ -208,6 +209,31 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setUsage(next);
   };
 
+  /**
+   * C2 (audit): called when the browser returns from a payment gateway. It does
+   * NOT read the tier from the URL. It asks the server to confirm the payment by
+   * its reference; only the server (payment-webhook) may grant a tier. Afterwards
+   * we re-read the authoritative usage row from the backend.
+   */
+  const confirmPaymentReturn = async (reference: string | null) => {
+    if (!reference || !supabase) return;
+    try {
+      const { data: rec } = await supabase
+        .from("payment_records")
+        .select("tier_id,status,user_id")
+        .eq("reference", reference)
+        .maybeSingle();
+      // Trust ONLY a record the backend already marked completed for this user.
+      if (rec?.status === "completed" && rec.user_id === uid(user) && rec.tier_id) {
+        setUsage((u) => ({ ...u, tierId: rec.tier_id as string }));
+      }
+      // else: not yet confirmed — the webhook may still be processing; the UI
+      // simply shows the current (unchanged) tier rather than granting anything.
+    } catch {
+      /* leave tier unchanged on any error — never grant optimistically */
+    }
+  };
+
   const payForTier = async (tier: PaidTier, gateway: PaymentGateway) => {
     if (tier.priceNgn === 0) {
       applyTier(tier.id);
@@ -301,6 +327,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       canGenerate: canGenerate(usage, content.tiers, content.settings, content.monetization),
       consumeGen,
       applyTier,
+      confirmPaymentReturn,
       billingOpen,
       openBilling: () => setBillingOpen(true),
       closeBilling: () => setBillingOpen(false),

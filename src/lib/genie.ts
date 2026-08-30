@@ -1,4 +1,5 @@
 import { MOCK_CONTENT } from "../data/seed";
+import { supabase } from "./supabase";
 import type { Pathway, PlanStep, Profile, Roadmap } from "../types";
 
 const NF = new Intl.NumberFormat("en-NG");
@@ -21,7 +22,20 @@ export function localRoadmap(
 ): Roadmap {
   const p = profile;
   const years = Math.max(1, p.target - p.age);
-  const infl = 0.15;
+  // M4 (audit): make inflation actually vary by city so the "location-aware"
+  // behaviour is real, not just wording. Falls back to a national average.
+  const CITY_INFLATION: Record<string, number> = {
+    Lagos: 0.17,
+    Abuja: 0.16,
+    "Port Harcourt": 0.16,
+    Kano: 0.14,
+    Ibadan: 0.15,
+    Enugu: 0.15,
+    Kaduna: 0.14,
+    "Benin City": 0.15,
+  };
+  const NATIONAL_INFLATION = 0.15;
+  const infl = CITY_INFLATION[p.city] ?? NATIONAL_INFLATION;
   const goalLabels = [...goals]
     .map((id) => MOCK_CONTENT.goals.find((g) => g.id === id)?.label)
     .filter(Boolean) as string[];
@@ -40,12 +54,17 @@ export function localRoadmap(
     target += base[g] || 0;
   });
 
-  const fv = target * Math.pow(1 + infl, Math.min(years, 12));
+  // M4 (audit): both sides of the coverage ratio must use the SAME horizon.
+  // Previously the goal cost inflated over min(years,12) while the savings grew
+  // over the full `years`, which made long plans look better funded than they are.
+  const horizon = years;
+  const growth = 0.16;
+  const fv = target * Math.pow(1 + infl, horizon);
   const rate = p.income > 700_000 ? 0.3 : p.income > 300_000 ? 0.25 : 0.2;
   const feasibleMonthly = Math.round(p.income * rate);
   const projected =
-    p.savings * Math.pow(1.16, years) +
-    feasibleMonthly * 12 * ((Math.pow(1.16, years) - 1) / 0.16);
+    p.savings * Math.pow(1 + growth, horizon) +
+    feasibleMonthly * 12 * ((Math.pow(1 + growth, horizon) - 1) / growth);
   const coverage = Math.min(1.2, projected / Math.max(1, fv));
   const score = Math.max(28, Math.min(94, Math.round(34 + coverage * 55)));
   const pct = Math.round(coverage * 100);
@@ -113,7 +132,7 @@ export function localRoadmap(
 
   return {
     headline: `A ${years}-year plan to ${goalLabels.slice(0, 2).join(" and ") || "financial security"}`,
-    intro: `Based on ${naira(p.income)}/month in ${p.city}, ${naira(p.savings)} saved, and a window to age ${p.target} — paced to your life, not someone else's highlight reel.`,
+    intro: `Based on ${naira(p.income)}/month in ${p.city}, ${naira(p.savings)} saved, and a window to age ${p.target} — paced to your life, not someone else's highlight reel. This is general guidance, not regulated financial advice.`,
     score,
     monthly: feasibleMonthly,
     years,
@@ -132,6 +151,7 @@ export async function genieRoadmap(
     customText?: string;
     personas?: typeof MOCK_CONTENT.personas;
     pathways?: Pathway[];
+    accessToken?: string | null;
   },
 ): Promise<Roadmap> {
   const pathways = ctx.pathways ?? MOCK_CONTENT.pathways;
@@ -153,9 +173,19 @@ steps (5-8 of {id,label,category,targetAge}) where category is one of: savings,h
 pathways (4 of {id,t,d,y,c}).
 Realistic for Nigeria. Not regulated financial advice.`;
 
+    // H3 (audit): forward the user's Supabase access token so the genie proxy can
+    // authenticate the caller and enforce per-user quota SERVER-SIDE. Client-side
+    // limits are UX only; the proxy is the real gate and must reject over-quota.
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    let token = ctx.accessToken ?? null;
+    if (!token && supabase) {
+      try { token = (await supabase.auth.getSession()).data.session?.access_token ?? null; } catch { /* none */ }
+    }
+    if (token) headers.Authorization = `Bearer ${token}`;
+
     const r = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         max_tokens: 1400,

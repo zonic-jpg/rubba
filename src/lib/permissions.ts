@@ -1,20 +1,22 @@
-/** Canonical super admin — seeded in DB and mock registry */
+/** Canonical super admin — authoritative copy lives in admin_registry (DB). */
 export const SUPER_ADMIN_EMAIL = "oadeagbo@gmail.com";
 
-/** Shared password that unlocks Admin/Studio access for any email (additive to
- *  the email-based super admin). Client-side unlock only empowers local editing;
- *  production writes remain protected by Supabase RLS. */
-export const STUDIO_UNLOCK_PASSWORD = "rubbaxadmin1";
+/**
+ * SECURITY (audit C3): shared admin passwords must never ship in client code —
+ * frontend bundles are fully readable in the browser. Any "studio unlock" is now
+ * a LOCAL DEVELOPER convenience only: it is disabled in production builds and,
+ * even in dev, it only enables local (localStorage) editing. It NEVER grants
+ * real admin rights against the live database — those are enforced server-side
+ * by Supabase RLS keyed to the verified account email (see is_rubba_admin()).
+ */
+const DEV_UNLOCK = (import.meta as any).env?.VITE_DEV_STUDIO_PASSWORD as string | undefined;
+const IS_PROD = Boolean((import.meta as any).env?.PROD);
 
-/** All passwords that unlock Admin/Studio access for any email. ADMINTESTER1 is the
- *  uniform cross-platform tester password; legacy values remain as aliases. Matching
- *  is case-insensitive (see isStudioUnlockPassword) so admintester1 also works. */
-export const STUDIO_UNLOCK_PASSWORDS = [STUDIO_UNLOCK_PASSWORD, "ADMINTESTER1", "admin123"];
-
-/** Case-insensitive check for any shared Studio/Admin unlock password. */
+/** Case-insensitive check for the dev-only studio unlock. Always false in prod. */
 export function isStudioUnlockPassword(password: string | null | undefined): boolean {
-  const candidate = String(password ?? "").trim().toLowerCase();
-  return STUDIO_UNLOCK_PASSWORDS.some((p) => p.toLowerCase() === candidate);
+  if (IS_PROD || !DEV_UNLOCK) return false;
+  const candidate = String(password ?? "").trim();
+  return candidate.length > 0 && candidate === DEV_UNLOCK;
 }
 
 export type AdminPermission =
@@ -79,12 +81,7 @@ export function buildAccess(email: string | null, registry: AdminRegistry): Admi
   const superEmail = normalizeEmail(registry.superAdminEmail);
 
   if (norm === superEmail) {
-    return {
-      email: norm,
-      isSuperAdmin: true,
-      permissions: [...ALL_PERMISSIONS],
-      hasStudioAccess: true,
-    };
+    return { email: norm, isSuperAdmin: true, permissions: [...ALL_PERMISSIONS], hasStudioAccess: true };
   }
 
   const staff = registry.staff.find((s) => normalizeEmail(s.email) === norm);
@@ -103,8 +100,10 @@ export function can(access: AdminAccess, perm: AdminPermission): boolean {
 }
 
 export function defaultRegistry(): AdminRegistry {
-  return {
-    superAdminEmail: SUPER_ADMIN_EMAIL,
-    staff: [],
-  };
+  return { superAdminEmail: SUPER_ADMIN_EMAIL, staff: [] };
+}
+
+/** True only in a local dev build where the dev unlock is configured. */
+export function devStudioUnlockEnabled(): boolean {
+  return !IS_PROD && Boolean(DEV_UNLOCK);
 }

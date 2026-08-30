@@ -13,17 +13,22 @@ import { StoreProvider, useStore } from "./lib/store";
 import { track } from "./lib/analytics";
 
 function Shell() {
-  const { content, user, openAuth, signOut, openBilling, usageInfo, applyTier, dataMode } = useStore();
+  const { content, user, openAuth, signOut, openBilling, usageInfo, confirmPaymentReturn, dataMode } =
+    useStore();
   const location = useLocation();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "return") {
-      const tier = params.get("tier") || "plus";
-      applyTier(tier);
+      // C2: do NOT trust the tier from the URL. Ask the server to confirm the
+      // payment by its reference; the server (payment-webhook) is the only thing
+      // that may grant a tier. The client just re-reads its now-authoritative
+      // tier afterwards.
+      const reference = params.get("reference");
+      void confirmPaymentReturn(reference);
       window.history.replaceState({}, "", window.location.pathname);
     }
-  }, [applyTier]);
+  }, [confirmPaymentReturn]);
 
   useEffect(() => {
     track("page_view", { path: location.pathname });

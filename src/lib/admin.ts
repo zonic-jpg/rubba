@@ -8,6 +8,7 @@ import {
   ALL_PERMISSIONS,
   buildAccess,
   defaultRegistry,
+  devStudioUnlockEnabled,
   normalizeEmail,
   SUPER_ADMIN_EMAIL,
 } from "./permissions";
@@ -15,8 +16,9 @@ import {
 const LS_REGISTRY = "rubba_admin_registry";
 const LS_STUDIO_UNLOCK = "rubba_studio_unlock";
 
-/** Grant Admin/Studio access via the shared password (persists until sign-out). */
+/** Dev-only: enable local studio editing. No effect in production (see permissions.ts). */
 export function unlockStudioAccess(email: string | null) {
+  if (!devStudioUnlockEnabled()) return;
   try {
     localStorage.setItem(LS_STUDIO_UNLOCK, normalizeEmail(email || "studio-admin"));
   } catch {
@@ -33,6 +35,7 @@ export function clearStudioUnlock() {
 }
 
 function studioUnlockEmail(): string | null {
+  if (!devStudioUnlockEnabled()) return null;
   try {
     return localStorage.getItem(LS_STUDIO_UNLOCK);
   } catch {
@@ -83,21 +86,24 @@ async function loadRegistry(): Promise<AdminRegistry> {
   return loadProdRegistry();
 }
 
+/**
+ * SECURITY (audit C3): admin access is resolved from VERIFIED identity only.
+ * A dev studio unlock grants local (mock) editing rights in a dev build, but is
+ * ignored entirely in production — where the real gate is the account email
+ * matching admin_registry, enforced by Supabase RLS on every write.
+ */
 export async function resolveAdminAccess(
   userId: string | null,
   email: string | null,
 ): Promise<AdminAccess> {
-  const unlocked = studioUnlockEmail();
-  if (unlocked) {
+  // Dev convenience only: never grants prod DB rights (RLS is the real gate).
+  if (devStudioUnlockEnabled() && studioUnlockEmail() && getEffectiveDataMode() === "mock") {
     return {
-      email: email || unlocked,
+      email: email || studioUnlockEmail() || "studio-admin",
       isSuperAdmin: true,
       permissions: [...ALL_PERMISSIONS],
       hasStudioAccess: true,
     };
-  }
-  if (!email && userId === "demo") {
-    return buildAccess(SUPER_ADMIN_EMAIL, defaultRegistry());
   }
   const registry = await loadRegistry();
   return buildAccess(email, registry);
@@ -128,7 +134,6 @@ export async function grantStaffAccess(
     grantedAt: new Date().toISOString(),
     grantedBy: normalizeEmail(actorEmail),
   };
-
   if (existing >= 0) registry.staff[existing] = entry;
   else registry.staff.push(entry);
 
@@ -137,13 +142,14 @@ export async function grantStaffAccess(
     return { ok: true };
   }
 
-  await supabase.from("admin_staff").upsert({
+  // M1: surface write failures instead of reporting a false success.
+  const { error } = await supabase.from("admin_staff").upsert({
     email,
     permissions,
     granted_at: entry.grantedAt,
     granted_by: entry.grantedBy,
   });
-
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
@@ -163,7 +169,8 @@ export async function revokeStaffAccess(
     return { ok: true };
   }
 
-  await supabase.from("admin_staff").delete().eq("email", email);
+  const { error } = await supabase.from("admin_staff").delete().eq("email", email);
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
@@ -187,8 +194,10 @@ export async function transferSuperAdmin(
     return { ok: true };
   }
 
-  await supabase.from("admin_registry").upsert({ id: 1, super_admin_email: next });
-  await supabase.from("admin_staff").delete().eq("email", next);
+  const up = await supabase.from("admin_registry").upsert({ id: 1, super_admin_email: next });
+  if (up.error) return { ok: false, error: up.error.message };
+  const del = await supabase.from("admin_staff").delete().eq("email", next);
+  if (del.error) return { ok: false, error: del.error.message };
   return { ok: true };
 }
 
