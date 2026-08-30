@@ -8,8 +8,8 @@
 
 [build.environment]
   VITE_GOOGLE_AUTH = "false"
-  # Mock mode by default until Supabase production is wired
-  VITE_DATA_MODE = "mock"
+  # Live mode — set VITE_SUPABASE_* in Netlify UI as well
+  VITE_DATA_MODE = "live"
   NODE_VERSION = "20"
 
 # SPA deep-link fallback for react-router
