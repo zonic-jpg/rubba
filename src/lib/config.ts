@@ -2,8 +2,11 @@
 export type DataMode = "mock" | "production";
 
 export function getDataMode(): DataMode {
-  const env = import.meta.env.VITE_DATA_MODE as string | undefined;
-  if (env === "production") return "production";
+  const env = String(import.meta.env.VITE_DATA_MODE ?? "")
+    .trim()
+    .toLowerCase();
+  // "live" is the staging/ops alias used in .env / Netlify; same as production.
+  if (env === "production" || env === "live") return "production";
   return "mock";
 }
 

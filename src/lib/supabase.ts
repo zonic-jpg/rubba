@@ -14,7 +14,9 @@ export const googleAuthEnabled =
  * is configured — the intentional mock/demo deploy keeps working (and, per the
  * admin.ts fix, no longer auto-grants super-admin to visitors).
  */
-const wantsProduction =
-  String((import.meta as any).env?.VITE_DATA_MODE ?? "") === "production";
+const _dataMode = String((import.meta as any).env?.VITE_DATA_MODE ?? "")
+  .trim()
+  .toLowerCase();
+const wantsProduction = _dataMode === "production" || _dataMode === "live";
 export const backendMisconfigured =
   Boolean((import.meta as any).env?.PROD) && wantsProduction && !hasBackend;
