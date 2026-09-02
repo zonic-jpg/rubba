@@ -13,8 +13,17 @@ import { StoreProvider, useStore } from "./lib/store";
 import { track } from "./lib/analytics";
 
 function Shell() {
-  const { content, user, openAuth, signOut, openBilling, usageInfo, confirmPaymentReturn, dataMode } =
-    useStore();
+  const {
+    content,
+    user,
+    openAuth,
+    signOut,
+    openBilling,
+    usageInfo,
+    confirmPaymentReturn,
+    dataMode,
+    adminAccess,
+  } = useStore();
   const location = useLocation();
 
   useEffect(() => {
@@ -60,9 +69,11 @@ function Shell() {
             </NavLink>
           </nav>
           <nav className="head-auth" aria-label="Account">
-            <span className="mode-pill" title="Which data the site is using">
-              {dataMode === "mock" ? "Demo data" : "Live data"}
-            </span>
+            {adminAccess.hasStudioAccess && (
+              <span className="mode-pill" title="Which data the site is using">
+                {dataMode === "mock" ? "Demo data" : "Live data"}
+              </span>
+            )}
             {content.monetization?.userGate.active && (
               <button type="button" className="head-link head-plans" onClick={openBilling}>
                 <span className="head-plans-full">Plans · {usageInfo.unlimited ? "∞" : usageInfo.remaining} left</span>

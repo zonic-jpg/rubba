@@ -3,10 +3,11 @@ import { useStore } from "../lib/store";
 import TierCards, { GatewayPicker } from "./TierCards";
 import type { PaidTier, PaymentGateway } from "../types";
 import { gatewayLabel } from "../lib/payments";
+import { publicMessage } from "../lib/publicMessage";
 import { PAGE_IMAGES } from "../data/pageImages";
 
 export default function BillingModal() {
-  const { billingOpen, closeBilling, content, payForTier, usage, applyTier } = useStore();
+  const { billingOpen, closeBilling, content, payForTier, usage, applyTier, adminAccess } = useStore();
   const [selected, setSelected] = useState<PaidTier | null>(null);
   const [gateway, setGateway] = useState<PaymentGateway>(content.settings.defaultGateway);
   const [busy, setBusy] = useState(false);
@@ -28,14 +29,18 @@ export default function BillingModal() {
     const res = await payForTier(tier, gateway);
     setBusy(false);
     if (!res.ok) {
-      setMsg(res.error ?? "Payment failed");
+      setMsg(publicMessage(res.error, { fallback: "That payment didn't go through. Please try again." }));
       return;
     }
     if (res.url && !res.url.startsWith("#")) {
       window.location.href = res.url;
       return;
     }
-    setMsg(`Payment complete — ${tier.name} activated (${gatewayLabel(gateway)}).`);
+    setMsg(
+      adminAccess.hasStudioAccess
+        ? `Payment complete — ${tier.name} activated (${gatewayLabel(gateway)}).`
+        : `Payment complete — ${tier.name} activated.`,
+    );
     setTimeout(closeBilling, 1500);
   };
 
@@ -82,7 +87,9 @@ export default function BillingModal() {
         </button>
         {msg && <p className="billing-msg">{msg}</p>}
         <p className="billing-note">
-          Paystack, Flutterwave & Stripe supported in production. Demo mode simulates payment instantly.
+          {adminAccess.hasStudioAccess
+            ? "Paystack, Flutterwave & Stripe supported in production. Demo mode simulates payment instantly."
+            : "Paid by card or transfer through Paystack, Flutterwave or Stripe. You'll see the amount before you confirm, and you can cancel any time."}
         </p>
       </div>
     </>

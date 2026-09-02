@@ -624,7 +624,7 @@ export const MOCK_CONTENT: SiteContent = {
       },
       {
         q: "Which payment methods are supported?",
-        a: "Paystack, Flutterwave, and Stripe — depending on your region and admin configuration.",
+        a: "Card and bank transfer through Paystack, Flutterwave, or Stripe, depending on your region.",
       },
       {
         q: "Is my data private?",

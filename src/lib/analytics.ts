@@ -11,6 +11,7 @@ const APP = "rubba";
 export type AnalyticsEvent =
   | "page_view"
   | "value_zone_view"
+  | "value_zone_search"
   | "offer_view"
   | "offer_expand"
   | "offer_cta_click"

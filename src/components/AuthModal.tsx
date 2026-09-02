@@ -11,6 +11,7 @@ import {
 } from "../lib/auth";
 import { SUPER_ADMIN_EMAIL, isStudioUnlockPassword } from "../lib/permissions";
 import { resolveAdminGateLogin, isOwnerEmail } from "../lib/adminTesterApproval";
+import { publicError } from "../lib/publicMessage";
 import { PAGE_IMAGES } from "../data/pageImages";
 import RubbaMark from "./RubbaMark";
 import { PasswordRecovery } from "./PasswordRecovery";
@@ -18,7 +19,7 @@ import { PasswordRecovery } from "./PasswordRecovery";
 type Mode = "choose" | "email" | "otp";
 
 export default function AuthModal() {
-  const { authOpen, closeAuth, content, loginDemo, unlockAdmin } = useStore();
+  const { authOpen, closeAuth, content, loginDemo, unlockAdmin, adminAccess } = useStore();
   const [mode, setMode] = useState<Mode>("choose");
   const [isSignup, setIsSignup] = useState(true);
   const [email, setEmail] = useState("");
@@ -29,6 +30,10 @@ export default function AuthModal() {
   const [err, setErr] = useState<string | null>(null);
 
   if (!authOpen) return null;
+
+  // Testing-only sign-in hints (blank passwords, the admin address) are
+  // diagnostics, not features — keep them to people who administer the site.
+  const showTestingHints = !authReady && adminAccess.hasStudioAccess;
 
   const reset = () => {
     setMode("choose");
@@ -43,7 +48,7 @@ export default function AuthModal() {
   const google = async () => {
     setErr(null);
     if (!googleAuthEnabled) {
-      setErr("Google sign-in is not configured for this site.");
+      setErr("Google sign-in isn't available here — use email and password instead.");
       return;
     }
     if (!authReady) {
@@ -54,7 +59,7 @@ export default function AuthModal() {
     try {
       await continueWithGoogle();
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Sign-in failed");
+      setErr(publicError(e, "Sign-in failed. Please try again."));
     }
   };
 
@@ -66,7 +71,7 @@ export default function AuthModal() {
       if (isStudioUnlockPassword(password)) {
         const gate = resolveAdminGateLogin(email || SUPER_ADMIN_EMAIL, password, "rubba");
         if (!gate.ok) {
-          setErr(gate.message || "Awaiting approval");
+          setErr(publicError(gate.message, "Awaiting approval"));
           setBusy(false);
           return;
         }
@@ -93,7 +98,7 @@ export default function AuthModal() {
         close();
       }
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Failed");
+      setErr(publicError(e, "We couldn't complete that. Please try again."));
     }
     setBusy(false);
   };
@@ -110,7 +115,7 @@ export default function AuthModal() {
       await verifyOtp({ email, token: code });
       close();
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Verification failed");
+      setErr(publicError(e, "That code didn't work. Request a new one and try again."));
     }
     setBusy(false);
   };
@@ -163,18 +168,18 @@ export default function AuthModal() {
               className="auth-in"
               type="email"
               value={email}
-              placeholder={SUPER_ADMIN_EMAIL}
+              placeholder={showTestingHints ? SUPER_ADMIN_EMAIL : "you@example.com"}
               onChange={(e) => setEmail(e.target.value)}
             />
             <label className="auth-l">
-              Password {!authReady && <span className="hint">(optional in demo)</span>}
+              Password {showTestingHints && <span className="hint">(optional here)</span>}
             </label>
             <div style={{ position: "relative" }}>
               <input
                 className="auth-in"
                 type={showPassword ? "text" : "password"}
                 value={password}
-                placeholder={authReady ? "" : "Leave blank, or admin password"}
+                placeholder={showTestingHints ? "Leave blank, or admin password" : ""}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{ paddingRight: 44 }}
               />
@@ -199,7 +204,7 @@ export default function AuthModal() {
               disabled={busy || !email || (authReady && !password)}
               onClick={submitEmail}
             >
-              {busy ? "Please wait…" : authReady ? (isSignup ? "Create account" : "Log in") : "Continue (demo)"}
+              {busy ? "Please wait…" : isSignup ? "Create account" : "Log in"}
             </button>
             <button type="button" className="auth-back" onClick={reset}>
               ‹ Back
@@ -227,9 +232,9 @@ export default function AuthModal() {
         )}
 
         {err && <p className="auth-err">{err}</p>}
-        {!authReady && (
+        {showTestingHints && (
           <p className="auth-demo">
-            Demo mode — sign in with any email to test staff permissions. Super admin: <strong>{SUPER_ADMIN_EMAIL}</strong>
+            Sign in with any email to check staff permissions. Super admin: <strong>{SUPER_ADMIN_EMAIL}</strong>
           </p>
         )}
       </div>

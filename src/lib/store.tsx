@@ -16,6 +16,7 @@ import {
   canGenerate,
 } from "./usage";
 import { completeMockPayment, startPayment, type PaymentRequest } from "./payments";
+import { setDiagnosticsAudience } from "./publicMessage";
 import type {
   SiteContent,
   Profile,
@@ -171,6 +172,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setUsage(loadUsage(uid(user)));
   }, [user]);
+
+  // Only admins may read build/infrastructure detail in errors and banners.
+  useEffect(() => {
+    setDiagnosticsAudience(adminAccess.hasStudioAccess);
+  }, [adminAccess.hasStudioAccess]);
 
   const usageInfo = useMemo(
     () => usageSummary(usage, content.tiers, content.settings, content.monetization),

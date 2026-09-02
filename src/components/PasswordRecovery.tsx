@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase, hasBackend } from "../lib/supabase";
+import { publicError } from "../lib/publicMessage";
 
 const wrap: React.CSSProperties = {
   position: "fixed",
@@ -77,25 +78,25 @@ export function PasswordRecovery() {
     setErr(null);
     if (!hasBackend || !supabase) {
       setBusy(false);
-      setErr("Live auth is not configured on this build.");
+      setErr("Password resets aren't available right now. Please try again later.");
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/#recovery`,
     });
     setBusy(false);
-    if (error) setErr(error.message);
+    if (error) setErr(publicError(error, "We couldn't send that reset link. Please try again."));
     else setMsg("If an account exists for that email, we've sent a reset link.");
   };
 
   const doReset = async () => {
     if (pw.length < 8) return setErr("Password must be at least 8 characters.");
     if (pw !== pw2) return setErr("Passwords don't match.");
-    if (!supabase) return setErr("Not connected");
+    if (!supabase) return setErr("Password changes aren't available right now. Please try again later.");
     setBusy(true);
     const { error } = await supabase.auth.updateUser({ password: pw });
     setBusy(false);
-    if (error) setErr(error.message);
+    if (error) setErr(publicError(error, "We couldn't update your password. Please try again."));
     else {
       setMsg("Password updated.");
       setTimeout(close, 1500);
@@ -112,7 +113,7 @@ export function PasswordRecovery() {
           ) : (
             <>
               <p style={{ fontSize: 13, color: "#374151" }}>
-                Real email accounts only. Orbit studio unlock passwords are unchanged for testers.
+                Enter the email address on your Rubba account and we'll send you a reset link.
               </p>
               <input style={inp} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
               {err && <p style={{ fontSize: 13, color: "#b00020", marginTop: 8 }}>{err}</p>}

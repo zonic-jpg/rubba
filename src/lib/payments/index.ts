@@ -28,10 +28,13 @@ export async function initMockPayment(req: PaymentRequest): Promise<PaymentInitR
 export async function initGatewayPayment(req: PaymentRequest): Promise<PaymentInitResult> {
   const base = paymentApiBase();
   if (!base) {
+    // The message renders in the billing modal, so the missing setting is
+    // named in the console for whoever deploys the site, not on screen.
+    console.warn("Payment API base missing: set VITE_PAYMENT_API_URL or VITE_SUPABASE_URL.");
     return {
       ok: false,
       gateway: req.gateway,
-      message: "Payment API not configured. Set VITE_PAYMENT_API_URL or VITE_SUPABASE_URL.",
+      message: "Payments are unavailable right now. Please try again later.",
     };
   }
 
@@ -52,7 +55,10 @@ export async function initGatewayPayment(req: PaymentRequest): Promise<PaymentIn
   });
 
   if (!res.ok) {
+    // Raw gateway/driver text goes to the console; the billing modal filters
+    // this message through the public message guard before showing it.
     const err = await res.text();
+    if (err) console.warn("Payment init failed:", err);
     return { ok: false, gateway: req.gateway, message: err || "Payment init failed" };
   }
 
