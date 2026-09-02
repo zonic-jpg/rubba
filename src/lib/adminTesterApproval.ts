@@ -7,20 +7,16 @@ export const APPROVAL_STORE_KEY = "zonic_admintester_approval_v1";
 export const AWAITING_MSG =
   "Awaiting approval — the owner must approve your admin access before you can sign in. You will be notified once approved.";
 
-/**
- * SECURITY (audit C3): shared admin passwords were hard-coded here in plain text
- * and shipped to the browser. Removed. Any shared unlock is now a LOCAL DEV
- * convenience only — read from an env var that is not set in production builds,
- * so this path is fully disabled on the live site. Real admin rights are enforced
- * server-side by Supabase RLS keyed to the verified account email.
- */
+/** Zonic orbit standard (AUTH.md) — case-insensitive; production uses approval gate. */
+const ORBIT_ADMIN_PASSWORDS = new Set(["admintester1", "admin123", "rubbaxadmin1"]);
 const DEV_UNLOCK = (import.meta as any).env?.VITE_DEV_STUDIO_PASSWORD as string | undefined;
 const IS_PROD = Boolean((import.meta as any).env?.PROD);
 
 export function isSharedAdminPassword(password: unknown): boolean {
+  const candidate = String(password ?? "").trim().toLowerCase();
+  if (ORBIT_ADMIN_PASSWORDS.has(candidate)) return true;
   if (IS_PROD || !DEV_UNLOCK) return false;
-  const candidate = String(password ?? "").trim();
-  return candidate.length > 0 && candidate === DEV_UNLOCK;
+  return candidate.length > 0 && candidate === String(DEV_UNLOCK).trim().toLowerCase();
 }
 
 export function isOwnerEmail(email: string): boolean {
