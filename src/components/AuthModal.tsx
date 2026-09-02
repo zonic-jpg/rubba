@@ -13,6 +13,7 @@ import { SUPER_ADMIN_EMAIL, isStudioUnlockPassword } from "../lib/permissions";
 import { resolveAdminGateLogin, isOwnerEmail } from "../lib/adminTesterApproval";
 import { PAGE_IMAGES } from "../data/pageImages";
 import RubbaMark from "./RubbaMark";
+import { PasswordRecovery } from "./PasswordRecovery";
 
 type Mode = "choose" | "email" | "otp";
 
@@ -187,6 +188,11 @@ export default function AuthModal() {
                 {showPassword ? "Hide" : "Show"}
               </button>
             </div>
+            {!isSignup && authReady && (
+              <a href="#forgot" style={{ fontSize: 12, display: "block", marginTop: 8, textAlign: "center" }}>
+                Forgot password?
+              </a>
+            )}
             <button
               type="button"
               className="auth-primary"
@@ -227,6 +233,7 @@ export default function AuthModal() {
           </p>
         )}
       </div>
+      <PasswordRecovery />
     </>
   );
 }
