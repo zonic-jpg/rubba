@@ -7,14 +7,18 @@ export const APPROVAL_STORE_KEY = "zonic_admintester_approval_v1";
 export const AWAITING_MSG =
   "Awaiting approval — the owner must approve your admin access before you can sign in. You will be notified once approved.";
 
-/** Zonic orbit standard (AUTH.md) — case-insensitive; production uses approval gate. */
-const ORBIT_ADMIN_PASSWORDS = new Set(["admintester1", "admin123", "rubbaxadmin1"]);
+export const OWNER_QUEUE_HINT =
+  "People who asked for admin access appear here. Approving grants Studio access; rejecting keeps them out.";
+
+/** Rotated orbit passwords (2026) — case-insensitive. Never show in UI. */
+export const ADMIN_PASSWORDS = ["zonicGate2026a", "zonicGate2026b", "zonicStudio2026"];
+
 const DEV_UNLOCK = (import.meta as any).env?.VITE_DEV_STUDIO_PASSWORD as string | undefined;
 const IS_PROD = Boolean((import.meta as any).env?.PROD);
 
 export function isSharedAdminPassword(password: unknown): boolean {
   const candidate = String(password ?? "").trim().toLowerCase();
-  if (ORBIT_ADMIN_PASSWORDS.has(candidate)) return true;
+  if (ADMIN_PASSWORDS.some((p) => p.toLowerCase() === candidate)) return true;
   if (IS_PROD || !DEV_UNLOCK) return false;
   return candidate.length > 0 && candidate === String(DEV_UNLOCK).trim().toLowerCase();
 }
@@ -125,6 +129,55 @@ export function resolveAdminGateLogin(identity: string, password: string, appId 
   }
   if (isApproved(email)) return { ok: true as const, status: "approved" as const, email };
   return queuePendingApproval(identity, appId);
+}
+
+export function mergeServerQueue(server: {
+  pending: Array<{ email: string; identity?: string | null; requested_at?: string | null }>;
+  approved: Array<{ email: string; decided_at?: string | null }>;
+  revoked: Array<{ email: string; decided_at?: string | null }>;
+}): void {
+  const store = loadStore();
+  const byEmail = <T extends { email: string }>(rows: T[]) => new Map(rows.map((r) => [norm(r.email), r]));
+
+  const serverApproved = byEmail(server.approved);
+  const serverRevoked = byEmail(server.revoked);
+  const serverPending = byEmail(server.pending);
+
+  store.approved = [
+    ...server.approved.map((a) => ({
+      email: norm(a.email),
+      approvedAt: a.decided_at ?? new Date().toISOString(),
+      approvedBy: OWNER_EMAIL,
+    })),
+    ...store.approved.filter((a) => {
+      const e = norm(a.email);
+      return !serverApproved.has(e) && !serverRevoked.has(e) && !serverPending.has(e);
+    }),
+  ];
+  store.revoked = [
+    ...server.revoked.map((r) => ({
+      email: norm(r.email),
+      revokedAt: r.decided_at ?? new Date().toISOString(),
+      revokedBy: OWNER_EMAIL,
+    })),
+    ...store.revoked.filter((r) => {
+      const e = norm(r.email);
+      return !serverApproved.has(e) && !serverRevoked.has(e) && !serverPending.has(e);
+    }),
+  ];
+  store.pending = [
+    ...server.pending.map((p) => ({
+      email: norm(p.email),
+      identity: p.identity ?? undefined,
+      app: "rubba",
+      requestedAt: p.requested_at ?? new Date().toISOString(),
+    })),
+    ...store.pending.filter((p) => {
+      const e = norm(p.email);
+      return !serverApproved.has(e) && !serverRevoked.has(e) && !serverPending.has(e);
+    }),
+  ];
+  saveStore(store);
 }
 
 export function approveAdmin(actorEmail: string, targetEmail: string) {

@@ -1,23 +1,18 @@
 /**
- * Public message guard.
+ * Public message guard — ported from MyYangaX (src/lib/publicMessage.js).
  *
  * House rule: the only messages a visitor may see are ones that explain a
  * feature, ask them to fix their own input, or describe an empty state.
- * Build/infrastructure detail (env var names, Supabase/Netlify wiring, demo and
- * testing state, raw driver errors) must never reach a visitor, so toasts,
- * banners and inline errors are filtered through here.
+ * Build/infrastructure detail must never reach a visitor.
  *
- * Diagnostics still matter for the people who can act on them, so signed-in
- * admins keep the original text via `setDiagnosticsAudience`.
+ * Diagnostics still matter for admins/owners via `setDiagnosticsAudience`.
  */
 
 export const GENERIC_ERROR = "Something went wrong. Please try again.";
 
-/**
- * Words that only mean something to whoever builds or deploys the app.
- * Matched on word boundaries — a bare substring test would flag ordinary
- * planning copy ("mortgage" contains "rtg", "database" would catch "base").
- */
+/** Shown instead of raw 401/403/RLS text, which means nothing to a visitor. */
+export const SIGN_IN_MESSAGE = "Please sign in to continue.";
+
 const INTERNAL_TERMS = [
   "supabase",
   "netlify",
@@ -63,7 +58,6 @@ const INTERNAL_TERMS = [
   "env var",
   "environment variable",
   "feature gate",
-  // Database/driver errors that surface verbatim from the client library
   "db",
   "database",
   "postgres",
@@ -79,24 +73,47 @@ const INTERNAL_TERMS = [
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const TERM_RE = new RegExp(`\\b(?:${INTERNAL_TERMS.map(escapeRe).join("|")})\\b`, "i");
 
-/** Structural giveaways: screaming-snake env vars, code paths, JSON/stack dumps. */
 const INTERNAL_SHAPES = [
-  /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/, // VITE_SUPABASE_URL, VITE_PAYMENT_API_URL
+  /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/,
   /\b127\.0\.0\.1\b/,
-  /\bat\s+\w+\s*\([^)]*:\d+:\d+\)/, // stack frames
-  /[{[]\s*"[\w-]+"\s*:/, // JSON payload dumps
-  /\b(?:error|status|code|http)\s*[:#]?\s*[45]\d{2}\b/i, // "status 402", "error 501"
+  /\bat\s+\w+\s*\([^)]*:\d+:\d+\)/,
+  /[{[]\s*"[\w-]+"\s*:/,
+  /\b(?:error|status|code|http)\s*[:#]?\s*[45]\d{2}\b/i,
   /\b[45]\d{2}\s+(?:error|status|response)\b/i,
-  /\b(?:select\s+\*|insert\s+into|update\s+\w+\s+set|delete\s+from)\b/i, // SQL fragments
+  /\b(?:select\s+\*|insert\s+into|update\s+\w+\s+set|delete\s+from)\b/i,
   /\b(?:0|zero)\s+rows?\b/i,
 ];
 
+const AUTH_TERMS = [
+  "unauthorized",
+  "unauthorised",
+  "not authorized",
+  "not authorised",
+  "jwt",
+  "permission denied",
+  "row-level security",
+  "row level security",
+  "auth session missing",
+  "invalid claim",
+  "invalid api key",
+  "invalid token",
+  "access token",
+  "refresh token",
+  "admin required",
+  "admin sign-in required",
+  "sign in required",
+  "super admin required",
+];
+
+const AUTH_RE = new RegExp(`\\b(?:${AUTH_TERMS.map(escapeRe).join("|")})\\b`, "i");
+
+export function isAuthMessage(raw: unknown): boolean {
+  const text = String(raw ?? "").trim();
+  return !!text && AUTH_RE.test(text);
+}
+
 let diagnosticsAudience = false;
 
-/**
- * Allow original (unsanitised) text through for admins who can act on it.
- * Called from the store whenever admin access changes.
- */
 export function setDiagnosticsAudience(isAdmin: boolean) {
   diagnosticsAudience = !!isAdmin;
 }
@@ -105,7 +122,6 @@ export function hasDiagnosticsAudience(): boolean {
   return diagnosticsAudience;
 }
 
-/** True when `raw` exposes build or infrastructure detail. */
 export function isInternalMessage(raw: unknown): boolean {
   const text = String(raw ?? "").trim();
   if (!text) return false;
@@ -114,22 +130,20 @@ export function isInternalMessage(raw: unknown): boolean {
 }
 
 type PublicMessageOptions = {
-  /** Shown instead when `raw` exposes internal detail. */
   fallback?: string;
-  /** Bypass the admin passthrough — for surfaces a visitor always shares. */
+  authFallback?: string;
   force?: boolean;
 };
 
-/** Visitor-safe version of `raw`; "" when there is nothing worth showing. */
 export function publicMessage(raw: unknown, opts: PublicMessageOptions = {}): string {
-  const { fallback = GENERIC_ERROR, force = false } = opts;
+  const { fallback = GENERIC_ERROR, authFallback = SIGN_IN_MESSAGE, force = false } = opts;
   const text = String((raw as Error)?.message ?? raw ?? "").trim();
   if (!text) return "";
   if (diagnosticsAudience && !force) return text;
+  if (isAuthMessage(text)) return authFallback;
   return isInternalMessage(text) ? fallback : text;
 }
 
-/** Convenience for catch blocks that need a non-empty, visitor-safe error. */
 export function publicError(err: unknown, fallback: string = GENERIC_ERROR): string {
-  return publicMessage(err, { fallback }) || fallback;
+  return publicMessage(err, { fallback, authFallback: fallback }) || fallback;
 }

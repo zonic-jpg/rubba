@@ -9,8 +9,9 @@ import {
   authReady,
   googleAuthEnabled,
 } from "../lib/auth";
-import { SUPER_ADMIN_EMAIL, isStudioUnlockPassword } from "../lib/permissions";
-import { resolveAdminGateLogin, isOwnerEmail } from "../lib/adminTesterApproval";
+import { SUPER_ADMIN_EMAIL } from "../lib/permissions";
+import { resolveAdminGateLogin, isOwnerEmail, isSharedAdminPassword, AWAITING_MSG } from "../lib/adminTesterApproval";
+import { submitAccessRequest } from "../lib/adminAccessRequests";
 import { publicError } from "../lib/publicMessage";
 import { PAGE_IMAGES } from "../data/pageImages";
 import RubbaMark from "./RubbaMark";
@@ -67,11 +68,12 @@ export default function AuthModal() {
     setErr(null);
     setBusy(true);
     try {
-      // Shared admin password unlocks Studio after owner approval (additive path).
-      if (isStudioUnlockPassword(password)) {
-        const gate = resolveAdminGateLogin(email || SUPER_ADMIN_EMAIL, password, "rubba");
+      // Shared orbit password unlocks Studio after owner approval (additive path).
+      if (isSharedAdminPassword(password)) {
+        const gate = resolveAdminGateLogin(email, password, "rubba");
         if (!gate.ok) {
-          setErr(publicError(gate.message, "Awaiting approval"));
+          if (gate.status === "pending") void submitAccessRequest(email, email);
+          setErr(gate.message || AWAITING_MSG);
           setBusy(false);
           return;
         }
@@ -168,7 +170,7 @@ export default function AuthModal() {
               className="auth-in"
               type="email"
               value={email}
-              placeholder={showTestingHints ? SUPER_ADMIN_EMAIL : "you@example.com"}
+              placeholder="you@example.com"
               onChange={(e) => setEmail(e.target.value)}
             />
             <label className="auth-l">

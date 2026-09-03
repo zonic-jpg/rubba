@@ -13,6 +13,7 @@ import {
   transferSuperAdmin,
 } from "../lib/admin";
 import AdminTesterQueuePanel from "./AdminTesterQueuePanel";
+import { publicError } from "../lib/publicMessage";
 
 export default function AdminAccessPanel() {
   const { adminAccess, refreshAdminAccess } = useStore();
@@ -59,7 +60,7 @@ export default function AdminAccessPanel() {
     const res = await grantStaffAccess(adminAccess.email, grantEmail, [...grantPerms]);
     setBusy(false);
     if (!res.ok) {
-      setErr(res.error ?? "Failed");
+      setErr(publicError(res.error, "Could not grant access. Try again."));
       return;
     }
     setMsg(`Access granted to ${grantEmail.trim().toLowerCase()}`);
@@ -76,7 +77,7 @@ export default function AdminAccessPanel() {
     const res = await revokeStaffAccess(adminAccess.email, email);
     setBusy(false);
     if (!res.ok) {
-      setErr(res.error ?? "Failed");
+      setErr(publicError(res.error, "Could not revoke access. Try again."));
       return;
     }
     setMsg(`Revoked access for ${email}`);
@@ -91,7 +92,7 @@ export default function AdminAccessPanel() {
     const res = await transferSuperAdmin(adminAccess.email, transferEmail);
     setBusy(false);
     if (!res.ok) {
-      setErr(res.error ?? "Failed");
+      setErr(publicError(res.error, "Could not transfer owner control. Try again."));
       return;
     }
     setMsg(`Super admin transferred to ${transferEmail.trim().toLowerCase()}. Reloading…`);

@@ -1,5 +1,6 @@
 import { supabase, hasBackend } from "./supabase";
 import { getEffectiveDataMode } from "./content";
+import { publicError } from "./publicMessage";
 import {
   type AdminAccess,
   type AdminPermission,
@@ -57,8 +58,16 @@ function saveMockRegistry(registry: AdminRegistry) {
   localStorage.setItem(LS_REGISTRY, JSON.stringify(registry));
 }
 
+async function hasSupabaseSession(): Promise<boolean> {
+  if (!supabase) return false;
+  const { data } = await supabase.auth.getSession();
+  return Boolean(data.session?.access_token);
+}
+
 async function loadProdRegistry(): Promise<AdminRegistry> {
   if (!supabase) return defaultRegistry();
+  // Orbit/demo unlock has no JWT — querying admin_staff would 401 and leak to visitors.
+  if (!(await hasSupabaseSession())) return defaultRegistry();
 
   const { data: superRow } = await supabase
     .from("admin_registry")
@@ -149,7 +158,7 @@ export async function grantStaffAccess(
     granted_at: entry.grantedAt,
     granted_by: entry.grantedBy,
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: publicError(error) };
   return { ok: true };
 }
 
@@ -170,7 +179,7 @@ export async function revokeStaffAccess(
   }
 
   const { error } = await supabase.from("admin_staff").delete().eq("email", email);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: publicError(error) };
   return { ok: true };
 }
 
@@ -195,9 +204,9 @@ export async function transferSuperAdmin(
   }
 
   const up = await supabase.from("admin_registry").upsert({ id: 1, super_admin_email: next });
-  if (up.error) return { ok: false, error: up.error.message };
+  if (up.error) return { ok: false, error: publicError(up.error) };
   const del = await supabase.from("admin_staff").delete().eq("email", next);
-  if (del.error) return { ok: false, error: del.error.message };
+  if (del.error) return { ok: false, error: publicError(del.error) };
   return { ok: true };
 }
 
