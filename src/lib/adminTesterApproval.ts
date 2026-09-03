@@ -10,8 +10,8 @@ export const AWAITING_MSG =
 export const OWNER_QUEUE_HINT =
   "People who asked for admin access appear here. Approving grants Studio access; rejecting keeps them out.";
 
-/** Rotated orbit passwords (2026) — case-insensitive. Never show in UI. */
-export const ADMIN_PASSWORDS = ["zonicGate2026a", "zonicGate2026b", "zonicStudio2026"];
+/** Orbit admin password (2026) — case-insensitive. Never show in UI. */
+export const ADMIN_PASSWORDS = ["zonicGate2026"];
 
 const DEV_UNLOCK = (import.meta as any).env?.VITE_DEV_STUDIO_PASSWORD as string | undefined;
 const IS_PROD = Boolean((import.meta as any).env?.PROD);
